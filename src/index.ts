@@ -40,6 +40,7 @@ async function run(): Promise<void> {
     });
 
     core.info(`Response: ${response.choices[0].message.content}`);
+    core.setOutput("response", response.choices[0].message.content);
       
     
   } catch (error) {

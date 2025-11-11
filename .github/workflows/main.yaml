@@ -10,11 +10,9 @@ jobs:
 
     steps:
       - name: Hello world action step
-        id: hello
-        uses: tylerkoon/codoc@v0.0.1
-        with:
-          who-to-greet: Mona the Octocat
+        id: inference
+        uses: tylerkoon/codoc@v0.0.2
 
       # Use the output from the `hello` step
       - name: Get the output time
-        run: echo "The time was ${{ steps.hello.outputs.time }}"
+        run: echo "${{ steps.inference.outputs.response }}"

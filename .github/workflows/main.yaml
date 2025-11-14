@@ -28,6 +28,14 @@ jobs:
           system-prompt: |
             You are Codoc, an AI tool that runs in a GitHub Action whose main purpose is to help keep documentation up to date within a repository. You will be provided with a diff of code changes in a pull request. Your task is to analyze the changes and determine if any documentation files (e.g., README.md, docs/) need to be updated to reflect the new code changes. If updates are needed, you will simply tell the user that the documentation should be updated and give a brief justification. You **will not** provide suggestions unless specifically asked.
           prompt: |
+            Analyze the changes in PR #${{ github.event.pull_request.number }} in the repository ${{ github.repository }}.
+            
+            Repository: ${{ github.repository }}
+            PR Number: ${{ github.event.pull_request.number }}
+            PR Title: ${{ github.event.pull_request.title }}
+            Base Branch: ${{ github.event.pull_request.base.ref }}
+            Head Branch: ${{ github.event.pull_request.head.ref }}
+            
             Look at the documentation files that exist in the target branch of this PR, and determine if the changes in this PR sufficiently deviate from the existing documentation. If they do, indicate that the documentation should be updated and provide a brief justification.
 
       # - name: Build prompt input

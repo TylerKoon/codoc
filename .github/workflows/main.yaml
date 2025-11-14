@@ -9,31 +9,52 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.pull_request.draft == false
 
+    permissions:
+      models: read
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-
-      - name: Build prompt input
-        id: build_prompt
-        run: |
-          echo "List the documentation files that exist in the target branch of this PR, and determine if it needs to be updated based on the following pull request diff:" > prompt_input.txt
-          git fetch origin ${{ github.event.pull_request.base.ref }}
-          git diff origin/${{ github.event.pull_request.base.ref }}...HEAD >> prompt_input.txt
-          echo "::notice file=pr_diff.txt::Prompt input generated"
-      
       - name: Assess documentation state
         id: inference
         uses: actions/ai-inference@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          model: gpt-4o
+          github-mcp-token: ${{ secrets.USER_PAT }}
+          enable-github-mcp: true
           system-prompt: |
             You are Codoc, an AI tool that runs in a GitHub Action whose main purpose is to help keep documentation up to date within a repository. You will be provided with a diff of code changes in a pull request. Your task is to analyze the changes and determine if any documentation files (e.g., README.md, docs/) need to be updated to reflect the new code changes. If updates are needed, you will simply tell the user that the documentation should be updated and give a brief justification. You **will not** provide suggestions unless specifically asked.
-          prompt-file: ./prompt_input.txt
+          prompt: |
+            Analyze the changes in PR #${{ github.event.pull_request.number }} in the repository ${{ github.repository }}.
+            
+            Repository: ${{ github.repository }}
+            PR Number: ${{ github.event.pull_request.number }}
+            PR Title: ${{ github.event.pull_request.title }}
+            Base Branch: ${{ github.event.pull_request.base.ref }}
+            Head Branch: ${{ github.event.pull_request.head.ref }}
+            
+            Look at the documentation files that exist in the target branch of this PR, and determine if the changes in this PR sufficiently deviate from the existing documentation. If they do, indicate that the documentation should be updated and provide a brief justification.
+
+      # - name: Build prompt input
+      #   id: build_prompt
+      #   run: |
+      #     echo "List the documentation files that exist in the target branch of this PR, and determine if it needs to be updated based on the following pull request diff:" > prompt_input.txt
+      #     git fetch origin ${{ github.event.pull_request.base.ref }}
+      #     git diff origin/${{ github.event.pull_request.base.ref }}...HEAD >> prompt_input.txt
+      #     echo "::notice file=pr_diff.txt::Prompt input generated"
+      
+      # - name: Assess documentation state
+      #   id: inference
+      #   uses: actions/ai-inference@v2
+      #   with:
+      #     token: ${{ secrets.GITHUB_TOKEN }}
+      #     system-prompt: |
+      #       You are Codoc, an AI tool that runs in a GitHub Action whose main purpose is to help keep documentation up to date within a repository. You will be provided with a diff of code changes in a pull request. Your task is to analyze the changes and determine if any documentation files (e.g., README.md, docs/) need to be updated to reflect the new code changes. If updates are needed, you will simply tell the user that the documentation should be updated and give a brief justification. You **will not** provide suggestions unless specifically asked.
+      #     prompt-file: ./prompt_input.txt
   
-      - name: Print Output
-        id: output
-        run: echo "${{ steps.inference.outputs.response }}"
+      # - name: Print Output
+      #   id: output
+      #   run: echo "${{ steps.inference.outputs.response }}"
